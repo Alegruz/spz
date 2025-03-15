@@ -142,7 +142,7 @@ bool decompressGzippedImpl(
   std::vector<uint8_t> buffer(8192);
   z_stream stream = {};
   stream.next_in = const_cast<Bytef *>(compressed);
-  stream.avail_in = size;
+  stream.avail_in = static_cast<uInt>(size);
   if (inflateInit2(&stream, windowSize) != Z_OK) {
     return false;
   }
@@ -150,7 +150,7 @@ bool decompressGzippedImpl(
   bool success = false;
   while (true) {
     stream.next_out = buffer.data();
-    stream.avail_out = buffer.size();
+    stream.avail_out = static_cast<uInt>(buffer.size());
     int res = inflate(&stream, Z_NO_FLUSH);
     if (res != Z_OK && res != Z_STREAM_END) {
       break;
@@ -191,11 +191,11 @@ bool compressGzipped(const uint8_t *data, size_t size, std::vector<uint8_t> *out
   out->clear();
   out->reserve(size / 4);
   stream.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(data));
-  stream.avail_in = size;
+  stream.avail_in = static_cast<uInt>(size);
   bool success = false;
   while (true) {
     stream.next_out = buffer.data();
-    stream.avail_out = buffer.size();
+    stream.avail_out = static_cast<uInt>(buffer.size());
     int res = deflate(&stream, Z_FINISH);
     if (res != Z_OK && res != Z_STREAM_END) {
       break;
@@ -235,7 +235,7 @@ PackedGaussians packGaussians(const GaussianCloud &g) {
   packed.sh.resize(numPoints * shDim * 3);
 
   // Store coordinates as 24-bit fixed point values.
-  const float scale = (1 << packed.fractionalBits);
+  const float scale = static_cast<float>(1 << packed.fractionalBits);
   for (size_t i = 0; i < numPoints * 3; i++) {
     const int32_t fixed32 = static_cast<int32_t>(std::round(g.positions[i] * scale));
     packed.positions[i * 3 + 0] = fixed32 & 0xff;
@@ -298,13 +298,13 @@ UnpackedGaussian PackedGaussian::unpack(bool usesFloat16, int fractionalBits) co
     }
   } else {
     // Decode 24-bit fixed point coordinates
-    float scale = 1.0 / (1 << fractionalBits);
+    float fScale = 1.0f / static_cast<float>(1 << fractionalBits);
     for (size_t i = 0; i < 3; i++) {
       int32_t fixed32 = position[i * 3 + 0];
       fixed32 |= position[i * 3 + 1] << 8;
       fixed32 |= position[i * 3 + 2] << 16;
       fixed32 |= (fixed32 & 0x800000) ? 0xff000000 : 0;  // sign extension
-      result.position[i] = static_cast<float>(fixed32) * scale;
+      result.position[i] = static_cast<float>(fixed32) * fScale;
     }
   }
 
@@ -349,11 +349,11 @@ PackedGaussian PackedGaussians::at(int i) const {
   result.alpha = alphas[i];
 
   int shDim = dimForDegree(shDegree);
-  const auto *sh = &this->sh[i * shDim * 3];
-  for (int j = 0; j < shDim; ++j, sh += 3) {
-    result.shR[j] = sh[0];
-    result.shG[j] = sh[1];
-    result.shB[j] = sh[2];
+  const auto *pSh = &this->sh[i * shDim * 3];
+  for (int j = 0; j < shDim; ++j, pSh += 3) {
+    result.shR[j] = pSh[0];
+    result.shG[j] = pSh[1];
+    result.shB[j] = pSh[2];
   }
   for (int j = shDim; j < 15; ++j) {
     result.shR[j] = 128;
@@ -398,7 +398,7 @@ GaussianCloud unpackGaussians(const PackedGaussians &packed) {
     }
   } else {
     // Decode 24-bit fixed point coordinates
-    float scale = 1.0 / (1 << packed.fractionalBits);
+    float scale = 1.0f / static_cast<float>(1 << packed.fractionalBits);
     for (size_t i = 0; i < numPoints * 3; i++) {
       int32_t fixed32 = packed.positions[i * 3 + 0];
       fixed32 |= packed.positions[i * 3 + 1] << 8;

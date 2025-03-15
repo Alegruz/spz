@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstring>
@@ -112,8 +113,8 @@ struct GaussianCloud {
       scaleSums.push_back(sum);
     }
     std::sort(scaleSums.begin(), scaleSums.end());
-    float median = scaleSums[(int) (scaleSums.size() / 2)];
-    return (M_PI * 4 / 3) * exp(median);
+    double median = scaleSums[(int) (scaleSums.size() / 2)];
+    return (float)((M_PI * 4.0 / 3.0) * exp(median));
   }
 };
 
@@ -167,7 +168,7 @@ constexpr Vec3f times(const Quat4f &q, const Vec3f &p) {
     vx * (xz2 - wy2) + vy * (yz2 + wx2) + vz * (1.0f - (xx2 + yy2))};
 }
 
-constexpr Quat4f times(const Quat4f &a, const Quat4f &b) {
+Quat4f times(const Quat4f &a, const Quat4f &b) {
   auto [w, x, y, z] = a;
   auto [qw, qx, qy, qz] = b;
   return normalized(std::array<float, 4>{

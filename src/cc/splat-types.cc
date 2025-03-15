@@ -9,7 +9,7 @@ float halfToFloat(Half h) {
   auto exponent = ((h >> 10) & 0x1f);
   auto mantissa = h & 0x3ff;
 
-  float signMul = sgn == 1 ? -1.0 : 1.0;
+  float signMul = sgn == 1 ? -1.0f : 1.0f;
   if (exponent == 0) {
     // Subnormal numbers (no exponent, 0 in the mantissa decimal).
     return signMul * std::pow(2.0f, -14.0f) * static_cast<float>(mantissa) / 1024.0f;
@@ -17,7 +17,7 @@ float halfToFloat(Half h) {
 
   if (exponent == 31) {
     // Infinity or NaN.
-    return mantissa != 0 ? 0.0f / 0.0f : signMul * 1.0f / 0.0f;
+    return mantissa != 0 ? INFINITY : signMul * NAN;
   }
 
   // non-zero exponent implies 1 in the mantissa decimal.
@@ -34,28 +34,28 @@ Half floatToHalf(float f) {
   // Handle inf and nan from float.
   if (exponent == 0xFF) {
     if (mantissa == 0) {
-      return (sign << 15) | 0x7C00; // Inf
+      return static_cast<Half>((sign << 15) | 0x7C00); // Inf
     }
 
-    return (sign << 15) | 0x7C01;  // Nan
+    return static_cast<Half>((sign << 15) | 0x7C01);  // Nan
   }
 
   // If the exponent is greater than the range of half, return +/- Inf.
   int centeredExp = exponent - 127;
   if (centeredExp > 15) {
-    return (sign << 15) | 0x7C00;
+    return static_cast<Half>((sign << 15) | 0x7C00);
   }
 
   // Normal numbers. centeredExp = [-15, 15]
   if (centeredExp > -15) {
-    return (sign << 15) | ((centeredExp + 15) << 10) | (mantissa >> 13);
+    return static_cast<Half>((sign << 15) | ((centeredExp + 15) << 10) | (mantissa >> 13));
   }
 
   // Subnormal numbers.
   int fullMantissa = 0x800000 | mantissa;
   int shift = -(centeredExp + 14);  // Shift is in [-1 to -113]
   int newMantissa = fullMantissa >> shift;
-  return (sign << 15) | (newMantissa >> 13);
+  return static_cast<Half>((sign << 15) | (newMantissa >> 13));
 }
 
 float norm(const Vec3f &a) {
