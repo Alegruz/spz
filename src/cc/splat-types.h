@@ -147,7 +147,7 @@ constexpr float squaredNorm(const Vec3f &v) { return dot(v, v); }
 
 constexpr Quat4f quat4f(const float *data) { return {data[0], data[1], data[2], data[3]}; }
 
-constexpr Vec3f times(const Quat4f &q, const Vec3f &p) {
+inline constexpr Vec3f times(const Quat4f &q, const Vec3f &p) {
   auto [w, x, y, z] = q;
   auto [vx, vy, vz] = p;
   auto x2 = x + x;
@@ -168,7 +168,7 @@ constexpr Vec3f times(const Quat4f &q, const Vec3f &p) {
     vx * (xz2 - wy2) + vy * (yz2 + wx2) + vz * (1.0f - (xx2 + yy2))};
 }
 
-Quat4f times(const Quat4f &a, const Quat4f &b) {
+inline Quat4f times(const Quat4f &a, const Quat4f &b) {
   auto [w, x, y, z] = a;
   auto [qw, qx, qy, qz] = b;
   return normalized(std::array<float, 4>{
@@ -178,7 +178,7 @@ Quat4f times(const Quat4f &a, const Quat4f &b) {
     w * qz + x * qy - y * qx + z * qw});
 }
 
-constexpr Quat4f times(const Quat4f &a, float s) { 
+inline constexpr Quat4f times(const Quat4f &a, float s) { 
   return {a[0] * s, a[1] * s, a[2] * s, a[3] * s}; 
 }
 
@@ -186,7 +186,7 @@ constexpr Quat4f plus(const Quat4f &a, const Quat4f &b) {
   return {a[0] + b[0], a[1] + b[1], a[2] + b[2], a[3] + b[3]};
 }
 
-constexpr Vec3f times(const Vec3f &v, float s) { return {v[0] * s, v[1] * s, v[2] * s}; }
+inline constexpr Vec3f times(const Vec3f &v, float s) { return {v[0] * s, v[1] * s, v[2] * s}; }
 
 constexpr Vec3f plus(const Vec3f &a, const Vec3f &b) {
   return {a[0] + b[0], a[1] + b[1], a[2] + b[2]};
